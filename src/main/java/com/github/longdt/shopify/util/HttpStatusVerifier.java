@@ -6,17 +6,19 @@ import io.vertx.ext.web.client.HttpResponse;
 
 import java.util.function.Function;
 
-public class EmptyHttpResponseTransformer implements Function<HttpResponse<Buffer>, Void> {
-    public static final EmptyHttpResponseTransformer OK = new EmptyHttpResponseTransformer(200);
-    private final int successHttpStatus;
+public class HttpStatusVerifier implements Function<HttpResponse<Buffer>, Void> {
+    public static final HttpStatusVerifier OK = new HttpStatusVerifier(200);
+    public static final HttpStatusVerifier NO_CONTENT = new HttpStatusVerifier(204);
 
-    public EmptyHttpResponseTransformer(int successHttpStatus) {
-        this.successHttpStatus = successHttpStatus;
+    private final int expectedStatus;
+
+    public HttpStatusVerifier(int expectedStatus) {
+        this.expectedStatus = expectedStatus;
     }
 
     @Override
     public Void apply(HttpResponse<Buffer> response) {
-        if (response.statusCode() == successHttpStatus) {
+        if (response.statusCode() == expectedStatus) {
             return null;
         } else {
             throw new ShopifyException(response.statusCode() + " " + response.bodyAsString());

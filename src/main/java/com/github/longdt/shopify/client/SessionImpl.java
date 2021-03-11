@@ -3,11 +3,9 @@ package com.github.longdt.shopify.client;
 import com.github.longdt.shopify.exception.ShopifyException;
 import com.github.longdt.shopify.model.*;
 import com.github.longdt.shopify.model.internal.*;
-import com.github.longdt.shopify.util.HttpResponseTransformer;
+import com.github.longdt.shopify.util.HttpStatusVerifier;
 import com.github.longdt.shopify.util.Json;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -36,7 +34,8 @@ public class SessionImpl implements Session {
     @Override
     public Future<Void> uninstall() {
         return prepareRequest(HttpMethod.DELETE, "/admin/api_permissions/current.json")
-                .send().map(new HttpResponseTransformer<>(200, Void.class));
+                .send()
+                .map(HttpStatusVerifier.OK);
     }
 
     @Override
@@ -44,8 +43,7 @@ public class SessionImpl implements Session {
         Buffer body = Json.encodeToBuffer(new PriceRuleWrapper(priceRule));
         return prepareRequest(HttpMethod.POST, "/admin/price_rules.json")
                 .sendBuffer(body)
-                .map(new HttpResponseTransformer<>(201, PriceRuleWrapper.class))
-                .map(PriceRuleWrapper::getPriceRule);
+                .map(resp -> toObject(resp, 201, PriceRuleWrapper.class).getPriceRule());
     }
 
     @Override
@@ -55,98 +53,83 @@ public class SessionImpl implements Session {
             addQueryParam(request, query);
         }
         return request.send()
-                .map(new HttpResponseTransformer<>(200, PriceRuleList.class))
-                .map(PriceRuleList::getPriceRules);
+                .map(resp -> toObject(resp, 200, PriceRuleList.class).getPriceRules());
     }
 
     @Override
     public Future<PriceRule> updatePriceRule(PriceRule priceRule) {
         Buffer body = Json.encodeToBuffer(new PriceRuleWrapper(priceRule));
-        Future<PriceRuleWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/price_rules/" + priceRule.getId() + ".json")
-                .sendBuffer(body,
-                        new HttpResponseTransformer<>(200, PriceRuleWrapper.class, future));
-        future.map(PriceRuleWrapper::getPriceRule).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.PUT, "/admin/price_rules/" + priceRule.getId() + ".json")
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 200, PriceRuleWrapper.class).getPriceRule());
     }
 
     @Override
-    public void findPriceRule(Long priceRuleId, Handler<AsyncResult<PriceRule>> resultHandler) {
-        Future<PriceRuleWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/price_rules/" + priceRuleId + ".json")
-                .send(new HttpResponseTransformer<>(200, PriceRuleWrapper.class, future));
-        future.map(PriceRuleWrapper::getPriceRule).setHandler(resultHandler);
+    public Future<PriceRule> findPriceRule(Long priceRuleId) {
+        return prepareRequest(HttpMethod.PUT, "/admin/price_rules/" + priceRuleId + ".json")
+                .send()
+                .map(resp -> toObject(resp, 200, PriceRuleWrapper.class).getPriceRule());
     }
 
     @Override
-    public void deletePriceRule(Long priceRuleId, Handler<AsyncResult<Void>> resultHandler) {
-        prepareRequest(HttpMethod.DELETE, "/admin/price_rules/" + priceRuleId + ".json")
-                .send(new HttpResponseTransformer<>(204, Void.class, resultHandler));
+    public Future<Void> deletePriceRule(Long priceRuleId) {
+        return prepareRequest(HttpMethod.DELETE, "/admin/price_rules/" + priceRuleId + ".json")
+                .send()
+                .map(HttpStatusVerifier.NO_CONTENT);
     }
 
     @Override
-    public void createDiscountCode(Long priceRuleId, String code, int usageCount, Handler<AsyncResult<DiscountCode>> resultHandler) {
+    public Future<DiscountCode> createDiscountCode(Long priceRuleId, String code, int usageCount) {
         Buffer body = Buffer.buffer("{\"discount_code\":{\"code\":");
         Json.encode(code, body);
         body.appendString(",\"usage_count\":").appendString(String.valueOf(usageCount)).appendString("}}");
-        Future<DiscountCodeWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/price_rules/" + priceRuleId + "/discount_codes.json")
-                .sendBuffer(body,
-                        new HttpResponseTransformer<>(201, DiscountCodeWrapper.class, future));
-        future.map(DiscountCodeWrapper::getDiscountCode).setHandler(resultHandler);
-
+        return prepareRequest(HttpMethod.POST, "/admin/price_rules/" + priceRuleId + "/discount_codes.json")
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 201, DiscountCodeWrapper.class).getDiscountCode());
     }
 
     @Override
-    public void updateDiscountCode(DiscountCode discountCode, Handler<AsyncResult<DiscountCode>> resultHandler) {
+    public Future<DiscountCode> updateDiscountCode(DiscountCode discountCode) {
         Buffer body = Json.encodeToBuffer(new DiscountCodeWrapper(discountCode));
-        Future<DiscountCodeWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/price_rules/" + discountCode.getPriceRuleId()
+        return prepareRequest(HttpMethod.PUT, "/admin/price_rules/" + discountCode.getPriceRuleId()
                 + "/discount_codes/" + discountCode.getId() + ".json")
-                .sendBuffer(body,
-                        new HttpResponseTransformer<>(200, DiscountCodeWrapper.class, future));
-        future.map(DiscountCodeWrapper::getDiscountCode).setHandler(resultHandler);
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 200, DiscountCodeWrapper.class).getDiscountCode());
     }
 
     @Override
-    public void findDiscountCodes(Long priceRuleId, Handler<AsyncResult<List<DiscountCode>>> resultHandler) {
-        Future<DiscountCodeList> future = Future.future();
-        prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId + "/discount_codes.json")
-                .send(new HttpResponseTransformer<>(200, DiscountCodeList.class, future));
-        future.map(DiscountCodeList::getDiscountCodes).setHandler(resultHandler);
+    public Future<List<DiscountCode>> findDiscountCodes(Long priceRuleId) {
+        return prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId + "/discount_codes.json")
+                .send()
+                .map(resp -> toObject(resp, 200, DiscountCodeList.class).getDiscountCodes());
     }
 
     @Override
-    public void findDiscountCode(Long priceRuleId, Long discountCodeId, Handler<AsyncResult<DiscountCode>> resultHandler) {
-        Future<DiscountCodeWrapper> future = Future.future();
-        prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId
+    public Future<DiscountCode> findDiscountCode(Long priceRuleId, Long discountCodeId) {
+        return prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId
                 + "/discount_codes/" + discountCodeId + ".json")
-                .send(new HttpResponseTransformer<>(200, DiscountCodeWrapper.class, future));
-        future.map(DiscountCodeWrapper::getDiscountCode).setHandler(resultHandler);
+                .send()
+                .map(resp -> toObject(resp, 200, DiscountCodeWrapper.class).getDiscountCode());
     }
 
     @Override
-    public void searchDiscountCode(String code, boolean detail, Handler<AsyncResult<DiscountCode>> resultHandler) {
+    public Future<DiscountCode> searchDiscountCode(String code, boolean detail) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/discount_codes/lookup.json")
                 .addQueryParam("code", code);
         if (detail) {
-            Future<DiscountCodeWrapper> future = Future.future();
-            request.followRedirects(true)
-                    .send(new HttpResponseTransformer<>(200, DiscountCodeWrapper.class, future));
-            future.map(DiscountCodeWrapper::getDiscountCode).setHandler(resultHandler);
+            return request.followRedirects(true)
+                    .send()
+                    .map(resp -> toObject(resp, 200, DiscountCodeWrapper.class).getDiscountCode());
         } else {
-            request.followRedirects(false)
-                    .send(ar -> {
-                        if (ar.succeeded()) {
-                            HttpResponse<Buffer> response = ar.result();
-                            if (response.statusCode() == 303) {
-                                DiscountCode discountCode = parseDiscountCodeUrl(response.getHeader("location"));
-                                discountCode.setCode(code);
-                                resultHandler.handle(Future.succeededFuture(discountCode));
-                            } else {
-                                resultHandler.handle(Future.failedFuture(new ShopifyException(response.statusCode() + " " + response.bodyAsString())));
-                            }
+            return request.followRedirects(false)
+                    .send()
+                    .map(resp -> {
+                        if (resp.statusCode() == 303) {
+                            var discountCode = parseDiscountCodeUrl(resp.getHeader("location"));
+                            discountCode.setCode(code);
+                            return discountCode;
                         } else {
-                            resultHandler.handle(Future.failedFuture(ar.cause()));
+                            throw new ShopifyException(resp.statusCode() + " " + resp.bodyAsString());
                         }
                     });
         }
@@ -164,18 +147,18 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public void deleteDiscountCode(Long priceRuleId, Long discountCodeId, Handler<AsyncResult<Void>> resultHandler) {
-        prepareRequest(HttpMethod.DELETE, "/admin/price_rules/" + priceRuleId
+    public Future<Void> deleteDiscountCode(Long priceRuleId, Long discountCodeId) {
+        return prepareRequest(HttpMethod.DELETE, "/admin/price_rules/" + priceRuleId
                 + "/discount_codes/" + discountCodeId + ".json")
-                .send(new HttpResponseTransformer<>(204, Void.class, resultHandler));
+                .send()
+                .map(HttpStatusVerifier.NO_CONTENT);
     }
 
     @Override
-    public void createDiscountCodes(Long priceRuleId, List<String> codes, Handler<AsyncResult<DiscountCodeCreation>> resultHandler) {
+    public Future<DiscountCodeCreation> createDiscountCodes(Long priceRuleId, List<String> codes) {
         if (codes.isEmpty() || codes.size() > 100) {
-            resultHandler.handle(Future.failedFuture(
-                    new ShopifyException("Creates a discount code creation job: codes size must in range [1, 100]")));
-            return;
+            return Future.failedFuture(
+                    new ShopifyException("Creates a discount code creation job: codes size must in range [1, 100]"));
         }
         Buffer body = Buffer.buffer("{\"discount_codes\":[{\"code\":");
         Json.encode(codes.get(0), body);
@@ -186,60 +169,54 @@ public class SessionImpl implements Session {
             body.appendString("}");
         }
         body.appendString("]}");
-        Future<DiscountCodeCreationWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/price_rules/" + priceRuleId + "/batch.json")
-                .sendBuffer(body,
-                        new HttpResponseTransformer<>(201, DiscountCodeCreationWrapper.class, future));
-        future.map(DiscountCodeCreationWrapper::getDiscountCodeCreation).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.POST, "/admin/price_rules/" + priceRuleId + "/batch.json")
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 201, DiscountCodeCreationWrapper.class).getDiscountCodeCreation());
     }
 
     @Override
-    public void findDiscountCodeCreation(Long priceRuleId, Long batchId, Handler<AsyncResult<DiscountCodeCreation>> resultHandler) {
-        Future<DiscountCodeCreationWrapper> future = Future.future();
-        prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId
+    public Future<DiscountCodeCreation> findDiscountCodeCreation(Long priceRuleId, Long batchId) {
+        return prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId
                 + "/batch/" + batchId + ".json")
-                .send(new HttpResponseTransformer<>(200, DiscountCodeCreationWrapper.class, future));
-        future.map(DiscountCodeCreationWrapper::getDiscountCodeCreation).setHandler(resultHandler);
+                .send()
+                .map(resp -> toObject(resp, 200, DiscountCodeCreationWrapper.class).getDiscountCodeCreation());
     }
 
     @Override
-    public void findDiscountCodeResults(Long priceRuleId, Long batchId, Handler<AsyncResult<List<DiscountCodeResult>>> resultHandler) {
-        Future<DiscountCodeResultList> future = Future.future();
-        prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId + "/batch/" + batchId + "/discount_codes.json")
-                .send(new HttpResponseTransformer<>(200, DiscountCodeResultList.class, future));
-        future.map(DiscountCodeResultList::getDiscountCodes).setHandler(resultHandler);
+    public Future<List<DiscountCodeResult>> findDiscountCodeResults(Long priceRuleId, Long batchId) {
+        return prepareRequest(HttpMethod.GET, "/admin/price_rules/" + priceRuleId + "/batch/" + batchId + "/discount_codes.json")
+                .send()
+                .map(resp -> toObject(resp, 200, DiscountCodeResultList.class).getDiscountCodes());
     }
 
     @Override
-    public void findVariant(Long variantId, Handler<AsyncResult<ProductVariant>> resultHandler) {
-        prepareRequest(HttpMethod.GET, "/admin/variants/" + variantId + ".json")
-                .send(new HttpResponseTransformer<>(200, ProductVariant.class, resultHandler));
+    public Future<ProductVariant> findVariant(Long variantId) {
+        return prepareRequest(HttpMethod.GET, "/admin/variants/" + variantId + ".json")
+                .send()
+                .map(resp -> toObject(resp, 200, ProductVariant.class));
     }
 
     @Override
-    public void createWebhook(String topic, String address, Handler<AsyncResult<Webhook>> resultHandler) {
+    public Future<Webhook> createWebhook(String topic, String address) {
         JsonObject webhook = new JsonObject().put("topic", topic)
                 .put("address", address);
-        Future<WebhookWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/webhooks.json")
-                .sendJsonObject(new JsonObject().put("webhook", webhook),
-                        new HttpResponseTransformer<>(201, WebhookWrapper.class, future));
-        future.map(WebhookWrapper::getWebhook).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.POST, "/admin/webhooks.json")
+                .sendJsonObject(new JsonObject().put("webhook", webhook))
+                .map(resp -> toObject(resp, 201, WebhookWrapper.class).getWebhook());
     }
 
     @Override
-    public void findWebhooks(JsonObject query, Handler<AsyncResult<List<Webhook>>> resultHandler) {
+    public Future<List<Webhook>> findWebhooks(JsonObject query) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/webhooks.json");
         if (query != null) {
             addQueryParam(request, query);
         }
-        Future<WebhookList> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, WebhookList.class, future));
-        future.map(WebhookList::getWebhooks).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, WebhookList.class).getWebhooks());
     }
 
     @Override
-    public void countWebhooks(String address, String topic, Handler<AsyncResult<Long>> resultHandler) {
+    public Future<Long> countWebhooks(String address, String topic) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/webhooks/count.json");
         if (address != null) {
             request.addQueryParam("address", address);
@@ -247,22 +224,21 @@ public class SessionImpl implements Session {
         if (topic != null) {
             request.addQueryParam("topic", topic);
         }
-        sendCount(request, resultHandler);
+        return sendCount(request);
     }
 
     @Override
-    public void findWebhook(Long webhookId, String fields, Handler<AsyncResult<Webhook>> resultHandler) {
+    public Future<Webhook> findWebhook(Long webhookId, String fields) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/webhooks/" + webhookId + ".json");
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        Future<WebhookWrapper> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, WebhookWrapper.class, future));
-        future.map(WebhookWrapper::getWebhook).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, WebhookWrapper.class).getWebhook());
     }
 
     @Override
-    public void updateWebhook(Webhook webhook, Handler<AsyncResult<Webhook>> resultHandler) {
+    public Future<Webhook> updateWebhook(Webhook webhook) {
         JsonObject whJson = new JsonObject().put("id", webhook.getId());
         if (webhook.getTopic() != null) {
             whJson.put("topic", webhook.getTopic());
@@ -270,175 +246,162 @@ public class SessionImpl implements Session {
         if (webhook.getAddress() != null) {
             whJson.put("address", webhook.getAddress());
         }
-        Future<WebhookWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/webhooks/" + webhook.getId() + ".json")
-                .sendJsonObject(new JsonObject().put("webhook", whJson),
-                        new HttpResponseTransformer<>(200, WebhookWrapper.class, future));
-        future.map(WebhookWrapper::getWebhook).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.PUT, "/admin/webhooks/" + webhook.getId() + ".json")
+                .sendJsonObject(new JsonObject().put("webhook", whJson))
+                .map(resp -> toObject(resp, 200, WebhookWrapper.class).getWebhook());
     }
 
     @Override
-    public void deleteWebhook(Long webhookId, Handler<AsyncResult<Void>> resultHandler) {
-        prepareRequest(HttpMethod.DELETE, "/admin/webhooks/" + webhookId + ".json")
-                .send(new HttpResponseTransformer<>(200, Void.class, resultHandler));
+    public Future<Void> deleteWebhook(Long webhookId) {
+        return prepareRequest(HttpMethod.DELETE, "/admin/webhooks/" + webhookId + ".json")
+                .send()
+                .map(HttpStatusVerifier.OK);
     }
 
     @Override
-    public void findScriptTags(JsonObject query, Handler<AsyncResult<List<ScriptTag>>> resultHandler) {
+    public Future<List<ScriptTag>> findScriptTags(JsonObject query) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/script_tags.json");
         if (query != null) {
             addQueryParam(request, query);
         }
-        Future<ScriptTagList> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, ScriptTagList.class, future));
-        future.map(ScriptTagList::getScriptTags).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, ScriptTagList.class).getScriptTags());
     }
 
     @Override
-    public void countScriptTags(String src, Handler<AsyncResult<Long>> resultHandler) {
+    public Future<Long> countScriptTags(String src) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/script_tags/count.json");
         if (src != null) {
             request.addQueryParam("src", src);
         }
-        sendCount(request, resultHandler);
+        return sendCount(request);
     }
 
     @Override
-    public void findScriptTag(Long scriptTagId, String fields, Handler<AsyncResult<ScriptTag>> resultHandler) {
+    public Future<ScriptTag> findScriptTag(Long scriptTagId, String fields) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/script_tags/" + scriptTagId + ".json");
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        Future<ScriptTagWrapper> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, ScriptTagWrapper.class, future));
-        future.map(ScriptTagWrapper::getScriptTag).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, ScriptTagWrapper.class).getScriptTag());
     }
 
     @Override
-    public void createScriptTag(String event, String src, Handler<AsyncResult<ScriptTag>> resultHandler) {
+    public Future<ScriptTag> createScriptTag(String event, String src) {
         JsonObject scriptTag = new JsonObject().put("event", event).put("src", src);
-        Future<ScriptTagWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/script_tags.json")
-                .sendJsonObject(new JsonObject().put("script_tag", scriptTag),
-                        new HttpResponseTransformer<>(201, ScriptTagWrapper.class, future));
-        future.map(ScriptTagWrapper::getScriptTag).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.POST, "/admin/script_tags.json")
+                .sendJsonObject(new JsonObject().put("script_tag", scriptTag))
+                .map(resp -> toObject(resp, 201, ScriptTagWrapper.class).getScriptTag());
     }
 
     @Override
-    public void updateScriptTag(ScriptTag scriptTag, Handler<AsyncResult<ScriptTag>> resultHandler) {
+    public Future<ScriptTag> updateScriptTag(ScriptTag scriptTag) {
         JsonObject scriptJson = new JsonObject().put("id", scriptTag.getId()).put("src", scriptTag.getSrc());
-        Future<ScriptTagWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/script_tags/" + scriptTag.getId() + ".json")
-                .sendJsonObject(new JsonObject().put("script_tag", scriptJson),
-                        new HttpResponseTransformer<>(200, ScriptTagWrapper.class, future));
-        future.map(ScriptTagWrapper::getScriptTag).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.PUT, "/admin/script_tags/" + scriptTag.getId() + ".json")
+                .sendJsonObject(new JsonObject().put("script_tag", scriptJson))
+                .map(resp -> toObject(resp, 200, ScriptTagWrapper.class).getScriptTag());
     }
 
     @Override
-    public void deleteScriptTag(Long scriptTagId, Handler<AsyncResult<Void>> resultHandler) {
-        prepareRequest(HttpMethod.DELETE, "/admin/script_tags/" + scriptTagId + ".json")
-                .send(new HttpResponseTransformer<>(200, Void.class, resultHandler));
+    public Future<Void> deleteScriptTag(Long scriptTagId) {
+        return prepareRequest(HttpMethod.DELETE, "/admin/script_tags/" + scriptTagId + ".json")
+                .send()
+                .map(HttpStatusVerifier.OK);
     }
 
     @Override
-    public void findAssets(Long themeId, String fields, Handler<AsyncResult<List<Asset>>> resultHandler) {
+    public Future<List<Asset>> findAssets(Long themeId, String fields) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/themes/" + themeId + "/assets.json");
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        Future<AssetList> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, AssetList.class, future));
-        future.map(AssetList::getAssets).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, AssetList.class).getAssets());
     }
 
     @Override
-    public void findAsset(Long themeId, String assetKey, String fields, Handler<AsyncResult<Asset>> resultHandler) {
-        Future<AssetWrapper> future = Future.future();
-        prepareRequest(HttpMethod.GET, "/admin/themes/" + themeId + "/assets.json")
+    public Future<Asset> findAsset(Long themeId, String assetKey, String fields) {
+        return prepareRequest(HttpMethod.GET, "/admin/themes/" + themeId + "/assets.json")
                 .addQueryParam("asset[key]", assetKey)
-                .send(new HttpResponseTransformer<>(200, AssetWrapper.class, future));
-        future.map(AssetWrapper::getAsset).setHandler(resultHandler);
+                .send()
+                .map(resp -> toObject(resp, 200, AssetWrapper.class).getAsset());
     }
 
     @Override
-    public void updateAsset(Asset asset, Handler<AsyncResult<Asset>> resultHandler) {
+    public Future<Asset> updateAsset(Asset asset) {
         Buffer body = Json.encodeToBuffer(new AssetWrapper(asset));
-        updateAsset0(asset.getThemeId(), body, resultHandler);
+        return updateAsset0(asset.getThemeId(), body);
     }
 
     @Override
-    public void uploadAsset(Asset asset, String src, Handler<AsyncResult<Asset>> resultHandler) {
+    public Future<Asset> uploadAsset(Asset asset, String src) {
         Buffer body = Buffer.buffer("{\"asset\":{\"key\":");
         Json.encode(asset.getKey(), body);
         body.appendString(",\"src\":");
         Json.encode(src, body);
         body.appendString("}}");
-        updateAsset0(asset.getThemeId(), body, resultHandler);
+        return updateAsset0(asset.getThemeId(), body);
     }
 
     @Override
-    public void copyAsset(Asset asset, String sourceKey, Handler<AsyncResult<Asset>> resultHandler) {
+    public Future<Asset> copyAsset(Asset asset, String sourceKey) {
         Buffer body = Buffer.buffer("{\"asset\":{\"key\":");
         Json.encode(asset.getKey(), body);
         body.appendString(",\"source_key\":");
         Json.encode(sourceKey, body);
         body.appendString("}}");
-        updateAsset0(asset.getThemeId(), body, resultHandler);
+        return updateAsset0(asset.getThemeId(), body);
     }
 
-    private void updateAsset0(Long themeId, Buffer body, Handler<AsyncResult<Asset>> resultHandler) {
-        Future<AssetWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/themes/" + themeId + "/assets.json")
-                .sendBuffer(body,
-                        new HttpResponseTransformer<>(200, AssetWrapper.class, future));
-        future.map(AssetWrapper::getAsset).setHandler(resultHandler);
+    private Future<Asset> updateAsset0(Long themeId, Buffer body) {
+        return prepareRequest(HttpMethod.PUT, "/admin/themes/" + themeId + "/assets.json")
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 200, AssetWrapper.class).getAsset());
     }
 
     @Override
-    public void deleteAsset(Long themeId, String assetKey, Handler<AsyncResult<Void>> resultHandler) {
-        prepareRequest(HttpMethod.DELETE, "/admin/themes/" + themeId + "/assets.json")
+    public Future<Void> deleteAsset(Long themeId, String assetKey) {
+        return prepareRequest(HttpMethod.DELETE, "/admin/themes/" + themeId + "/assets.json")
                 .addQueryParam("asset[key]", assetKey)
-                .send(new HttpResponseTransformer<>(200, Void.class, resultHandler));
+                .send()
+                .map(HttpStatusVerifier.OK);
     }
 
     @Override
-    public void findThemes(String fields, Handler<AsyncResult<List<Theme>>> resultHandler) {
+    public Future<List<Theme>> findThemes(String fields) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/themes.json");
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        Future<ThemeList> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, ThemeList.class, future));
-        future.map(ThemeList::getThemes).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, ThemeList.class).getThemes());
     }
 
     @Override
-    public void findTheme(Long themeId, String fields, Handler<AsyncResult<Theme>> resultHandler) {
+    public Future<Theme> findTheme(Long themeId, String fields) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/themes/" + themeId + ".json");
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        Future<ThemeWrapper> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, ThemeWrapper.class, future));
-        future.map(ThemeWrapper::getTheme).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, ThemeWrapper.class).getTheme());
     }
 
     @Override
-    public void createTheme(String name, String src, Theme.Role role, Handler<AsyncResult<Theme>> resultHandler) {
+    public Future<Theme> createTheme(String name, String src, Theme.Role role) {
         JsonObject theme = new JsonObject().put("name", name).put("src", src);
         if (role != null) {
             theme.put("role", role);
         }
 
-        Future<ThemeWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/themes.json")
-                .sendJsonObject(new JsonObject().put("theme", theme),
-                        new HttpResponseTransformer<>(201, ThemeWrapper.class, future));
-        future.map(ThemeWrapper::getTheme).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.POST, "/admin/themes.json")
+                .sendJsonObject(new JsonObject().put("theme", theme))
+                .map(resp -> toObject(resp, 201, ThemeWrapper.class).getTheme());
     }
 
     @Override
-    public void updateTheme(Theme theme, Handler<AsyncResult<Theme>> resultHandler) {
+    public Future<Theme> updateTheme(Theme theme) {
         JsonObject thJson = new JsonObject().put("id", theme.getId());
         if (theme.getName() != null) {
             thJson.put("name", theme.getName());
@@ -447,76 +410,70 @@ public class SessionImpl implements Session {
             thJson.put("role", theme.getRole());
         }
 
-        Future<ThemeWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/themes/" + theme.getId() + ".json")
-                .sendJsonObject(new JsonObject().put("theme", thJson),
-                        new HttpResponseTransformer<>(200, ThemeWrapper.class, future));
-        future.map(ThemeWrapper::getTheme).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.PUT, "/admin/themes/" + theme.getId() + ".json")
+                .sendJsonObject(new JsonObject().put("theme", thJson))
+                .map(resp -> toObject(resp, 200, ThemeWrapper.class).getTheme());
     }
 
     @Override
-    public void deleteTheme(Long themeId, Handler<AsyncResult<Void>> resultHandler) {
-        prepareRequest(HttpMethod.DELETE, "/admin/themes/" + themeId + ".json")
-                .send(new HttpResponseTransformer<>(200, Void.class, resultHandler));
+    public Future<Void> deleteTheme(Long themeId) {
+        return prepareRequest(HttpMethod.DELETE, "/admin/themes/" + themeId + ".json")
+                .send()
+                .map(HttpStatusVerifier.OK);
     }
 
     @Override
-    public void findOrders(JsonObject query, Handler<AsyncResult<List<Order>>> resultHandler) {
+    public Future<List<Order>> findOrders(JsonObject query) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/orders.json");
         if (query != null) {
             addQueryParam(request, query);
         }
-        Future<OrderList> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, OrderList.class, future));
-        future.map(OrderList::getOrders).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, OrderList.class).getOrders());
     }
 
     @Override
-    public void countOrders(JsonObject query, Handler<AsyncResult<Long>> resultHandler) {
+    public Future<Long> countOrders(JsonObject query) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/orders/count.json");
         if (query != null) {
             addQueryParam(request, query);
         }
-        sendCount(request, resultHandler);
+        return sendCount(request);
     }
 
     @Override
-    public void findOrder(Long orderId, String fields, Handler<AsyncResult<Order>> resultHandler) {
+    public Future<Order> findOrder(Long orderId, String fields) {
         HttpRequest<Buffer> request = prepareRequest(HttpMethod.GET, "/admin/orders/" + orderId + ".json");
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        Future<OrderWrapper> future = Future.future();
-        request.send(new HttpResponseTransformer<>(200, OrderWrapper.class, future));
-        future.map(OrderWrapper::getOrder).setHandler(resultHandler);
+        return request.send()
+                .map(resp -> toObject(resp, 200, OrderWrapper.class).getOrder());
     }
 
     @Override
-    public void closeOrder(Long orderId, Handler<AsyncResult<Order>> resultHandler) {
-        Future<OrderWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/orders/" + orderId + "/close.json")
-                .send(new HttpResponseTransformer<>(200, OrderWrapper.class, future));
-        future.map(OrderWrapper::getOrder).setHandler(resultHandler);
+    public Future<Order> closeOrder(Long orderId) {
+        return prepareRequest(HttpMethod.POST, "/admin/orders/" + orderId + "/close.json")
+                .send()
+                .map(resp -> toObject(resp, 200, OrderWrapper.class).getOrder());
     }
 
     @Override
-    public void openOrder(Long orderId, Handler<AsyncResult<Order>> resultHandler) {
-        Future<OrderWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/orders/" + orderId + "/open.json")
-                .send(new HttpResponseTransformer<>(200, OrderWrapper.class, future));
-        future.map(OrderWrapper::getOrder).setHandler(resultHandler);
+    public Future<Order> openOrder(Long orderId) {
+        return prepareRequest(HttpMethod.POST, "/admin/orders/" + orderId + "/open.json")
+                .send()
+                .map(resp -> toObject(resp, 200, OrderWrapper.class).getOrder());
     }
 
     @Override
-    public void cancelOrder(Long orderId, JsonObject options, Handler<AsyncResult<Order>> resultHandler) {
-        Future<OrderWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/orders/" + orderId + "/cancel.json")
-                .sendJsonObject(options, new HttpResponseTransformer<>(200, OrderWrapper.class, future));
-        future.map(OrderWrapper::getOrder).setHandler(resultHandler);
+    public Future<Order> cancelOrder(Long orderId, JsonObject options) {
+        return prepareRequest(HttpMethod.POST, "/admin/orders/" + orderId + "/cancel.json")
+                .sendJsonObject(options)
+                .map(resp -> toObject(resp, 200, OrderWrapper.class).getOrder());
     }
 
     @Override
-    public void createOrder(Order order, JsonObject options, Handler<AsyncResult<Order>> resultHandler) {
+    public Future<Order> createOrder(Order order, JsonObject options) {
         Buffer body = Json.encodeToBuffer(new OrderWrapper(order));
         if (options != null && !options.getMap().isEmpty()) {
             int replacePos = body.length() - 2;
@@ -524,25 +481,24 @@ public class SessionImpl implements Session {
             body.setString(replacePos, ",  ");
             body.appendByte((byte) '}');
         }
-        Future<OrderWrapper> future = Future.future();
-        prepareRequest(HttpMethod.POST, "/admin/orders.json").sendBuffer(body, new HttpResponseTransformer<>(200, OrderWrapper.class, future));
-        future.map(OrderWrapper::getOrder).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.POST, "/admin/orders.json")
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 200, OrderWrapper.class).getOrder());
     }
 
     @Override
-    public void updateOrder(Order order, Handler<AsyncResult<Order>> resultHandler) {
+    public Future<Order> updateOrder(Order order) {
         Buffer body = Json.encodeToBuffer(new OrderWrapper(order));
-        Future<OrderWrapper> future = Future.future();
-        prepareRequest(HttpMethod.PUT, "/admin/orders/" + order.getId() + ".json")
-                .sendBuffer(body, new HttpResponseTransformer<>(200, OrderWrapper.class, future));
-        future.map(OrderWrapper::getOrder).setHandler(resultHandler);
+        return prepareRequest(HttpMethod.PUT, "/admin/orders/" + order.getId() + ".json")
+                .sendBuffer(body)
+                .map(resp -> toObject(resp, 200, OrderWrapper.class).getOrder());
     }
 
     @Override
     public Future<Void> deleteOrder(Long orderId) {
-        prepareRequest(HttpMethod.DELETE, "/admin/orders/" + orderId + ".json")
+        return prepareRequest(HttpMethod.DELETE, "/admin/orders/" + orderId + ".json")
                 .send()
-                .map()new HttpResponseTransformer<>(200, Void.class, resultHandler));
+                .map(HttpStatusVerifier.OK);
     }
 
     @Override
@@ -551,7 +507,7 @@ public class SessionImpl implements Session {
         if (fields != null) {
             request.addQueryParam("fields", fields);
         }
-        return request.send().map(v -> new HttpResponseTransformer<>(200, ShopWrapper.class).apply(v).getShop());
+        return request.send().map(resp -> toObject(resp, 200, ShopWrapper.class).getShop());
     }
 
     private HttpRequest<Buffer> prepareRequest(HttpMethod httpMethod, String requestUri) {
@@ -567,6 +523,14 @@ public class SessionImpl implements Session {
     }
 
     private Future<Long> sendCount(HttpRequest<Buffer> request) {
-        return request.send().map(v -> new HttpResponseTransformer<>(200, Count.class).apply(v).getCount());
+        return request.send().map(resp -> toObject(resp, 200, Count.class).getCount());
+    }
+
+    private static <T> T toObject(HttpResponse<Buffer> response, int expectedStatus, Class<T> clazz) {
+        if (response.statusCode() == expectedStatus) {
+            return Json.decodeValue(response.body(), clazz);
+        } else {
+            throw new ShopifyException(response.statusCode() + " " + response.bodyAsString());
+        }
     }
 }

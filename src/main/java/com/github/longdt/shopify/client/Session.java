@@ -14,7 +14,9 @@ public interface Session {
 
     Future<PriceRule> updatePriceRule(PriceRule priceRule);
 
-    Future<List<PriceRule>> findPriceRules();
+    default Future<List<PriceRule>> findPriceRules() {
+        return findPriceRules(null);
+    }
 
     default Future<List<PriceRule>> findPriceRules(int page, int limit) {
         return findPriceRules(new JsonObject().put("page", page).put("limit", limit));

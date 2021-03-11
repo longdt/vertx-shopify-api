@@ -16,6 +16,8 @@ import java.util.Base64;
 import java.util.Map;
 
 public class ShopifyClientImpl implements ShopifyClient {
+    private static final HttpResponseTransformer<OAuthToken> OAUTH_TOKEN_TRANSFORMER =
+            new HttpResponseTransformer<>(200, OAuthToken.class);
     private final WebClient webClient;
     private final String key;
     private final String secret;
@@ -40,7 +42,7 @@ public class ShopifyClientImpl implements ShopifyClient {
                 .ssl(true)
                 .putHeader("Content-Type", "application/json")
                 .sendBuffer(body)
-                .map(new HttpResponseTransformer<>(200, OAuthToken.class));
+                .map(OAUTH_TOKEN_TRANSFORMER);
     }
 
     @Override
