@@ -3,11 +3,15 @@ package com.github.longdt.shopify.model;
 import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
 import com.dslplatform.json.JsonValue;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@Data
+@Accessors(chain = true)
 @CompiledJson
 public class PriceRule {
     private AllocationMethod allocationMethod;
@@ -170,17 +174,9 @@ public class PriceRule {
         return allocationMethod;
     }
 
-    public void setAllocationMethod(AllocationMethod allocationMethod) {
-        this.allocationMethod = allocationMethod;
-    }
-
     @JsonAttribute(name = "created_at")
     public OffsetDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
     @JsonAttribute(name = "customer_selection")
@@ -188,17 +184,9 @@ public class PriceRule {
         return customerSelection;
     }
 
-    public void setCustomerSelection(CustomerSelection customerSelection) {
-        this.customerSelection = customerSelection;
-    }
-
     @JsonAttribute(name = "ends_at")
     public OffsetDateTime getEndsAt() {
         return endsAt;
-    }
-
-    public void setEndsAt(OffsetDateTime endsAt) {
-        this.endsAt = endsAt;
     }
 
     @JsonAttribute(name = "entitled_collection_ids")
@@ -206,17 +194,9 @@ public class PriceRule {
         return entitledCollectionIds;
     }
 
-    public void setEntitledCollectionIds(List<Long> entitledCollectionIds) {
-        this.entitledCollectionIds = entitledCollectionIds;
-    }
-
     @JsonAttribute(name = "entitled_country_ids")
     public List<Long> getEntitledCountryIds() {
         return entitledCountryIds;
-    }
-
-    public void setEntitledCountryIds(List<Long> entitledCountryIds) {
-        this.entitledCountryIds = entitledCountryIds;
     }
 
     @JsonAttribute(name = "entitled_product_ids")
@@ -224,25 +204,9 @@ public class PriceRule {
         return entitledProductIds;
     }
 
-    public void setEntitledProductIds(List<Long> entitledProductIds) {
-        this.entitledProductIds = entitledProductIds;
-    }
-
     @JsonAttribute(name = "entitled_variant_ids")
     public List<Long> getEntitledVariantIds() {
         return entitledVariantIds;
-    }
-
-    public void setEntitledVariantIds(List<Long> entitledVariantIds) {
-        this.entitledVariantIds = entitledVariantIds;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     @JsonAttribute(name = "once_per_customer")
@@ -250,17 +214,9 @@ public class PriceRule {
         return oncePerCustomer;
     }
 
-    public void setOncePerCustomer(Boolean oncePerCustomer) {
-        this.oncePerCustomer = oncePerCustomer;
-    }
-
     @JsonAttribute(name = "prerequisite_customer_ids")
     public List<Long> getPrerequisiteCustomerIds() {
         return prerequisiteCustomerIds;
-    }
-
-    public void setPrerequisiteCustomerIds(List<Long> prerequisiteCustomerIds) {
-        this.prerequisiteCustomerIds = prerequisiteCustomerIds;
     }
 
     @JsonAttribute(name = "prerequisite_quantity_range")
@@ -268,17 +224,9 @@ public class PriceRule {
         return prerequisiteQuantityRange;
     }
 
-    public void setPrerequisiteQuantityRange(PrerequisiteQuantityRange prerequisiteQuantityRange) {
-        this.prerequisiteQuantityRange = prerequisiteQuantityRange;
-    }
-
     @JsonAttribute(name = "prerequisite_saved_search_ids")
     public List<Long> getPrerequisiteSavedSearchIds() {
         return prerequisiteSavedSearchIds;
-    }
-
-    public void setPrerequisiteSavedSearchIds(List<Long> prerequisiteSavedSearchIds) {
-        this.prerequisiteSavedSearchIds = prerequisiteSavedSearchIds;
     }
 
     @JsonAttribute(name = "prerequisite_shipping_price_range")
@@ -286,17 +234,9 @@ public class PriceRule {
         return prerequisiteShippingPriceRange;
     }
 
-    public void setPrerequisiteShippingPriceRange(PrerequisiteShippingPriceRange prerequisiteShippingPriceRange) {
-        this.prerequisiteShippingPriceRange = prerequisiteShippingPriceRange;
-    }
-
     @JsonAttribute(name = "prerequisite_subtotal_range")
     public PrerequisiteSubtotalRange getPrerequisiteSubtotalRange() {
         return prerequisiteSubtotalRange;
-    }
-
-    public void setPrerequisiteSubtotalRange(PrerequisiteSubtotalRange prerequisiteSubtotalRange) {
-        this.prerequisiteSubtotalRange = prerequisiteSubtotalRange;
     }
 
     @JsonAttribute(name = "starts_at")
@@ -304,17 +244,9 @@ public class PriceRule {
         return startsAt;
     }
 
-    public void setStartsAt(OffsetDateTime startsAt) {
-        this.startsAt = startsAt;
-    }
-
     @JsonAttribute(name = "target_selection")
     public TargetSelection getTargetSelection() {
         return targetSelection;
-    }
-
-    public void setTargetSelection(TargetSelection targetSelection) {
-        this.targetSelection = targetSelection;
     }
 
     @JsonAttribute(name = "target_type")
@@ -322,25 +254,9 @@ public class PriceRule {
         return targetType;
     }
 
-    public void setTargetType(TargetType targetType) {
-        this.targetType = targetType;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     @JsonAttribute(name = "usage_limit")
     public Integer getUsageLimit() {
         return usageLimit;
-    }
-
-    public void setUsageLimit(Integer usageLimit) {
-        this.usageLimit = usageLimit;
     }
 
     @JsonAttribute(name = "prerequisite_product_ids")
@@ -348,17 +264,9 @@ public class PriceRule {
         return prerequisiteProductIds;
     }
 
-    public void setPrerequisiteProductIds(List<Long> prerequisiteProductIds) {
-        this.prerequisiteProductIds = prerequisiteProductIds;
-    }
-
     @JsonAttribute(name = "prerequisite_variant_ids")
     public List<Long> getPrerequisiteVariantIds() {
         return prerequisiteVariantIds;
-    }
-
-    public void setPrerequisiteVariantIds(List<Long> prerequisiteVariantIds) {
-        this.prerequisiteVariantIds = prerequisiteVariantIds;
     }
 
     @JsonAttribute(name = "prerequisite_collection_ids")
@@ -366,25 +274,9 @@ public class PriceRule {
         return prerequisiteCollectionIds;
     }
 
-    public void setPrerequisiteCollectionIds(List<Long> prerequisiteCollectionIds) {
-        this.prerequisiteCollectionIds = prerequisiteCollectionIds;
-    }
-
-    public BigDecimal getValue() {
-        return value;
-    }
-
-    public void setValue(BigDecimal value) {
-        this.value = value;
-    }
-
     @JsonAttribute(name = "value_type")
     public ValueType getValueType() {
         return valueType;
-    }
-
-    public void setValueType(ValueType valueType) {
-        this.valueType = valueType;
     }
 
     @JsonAttribute(name = "prerequisite_to_entitlement_quantity_ratio")
@@ -392,25 +284,13 @@ public class PriceRule {
         return prerequisiteToEntitlementQuantityRatio;
     }
 
-    public void setPrerequisiteToEntitlementQuantityRatio(PrerequisiteToEntitlementQuantityRatio prerequisiteToEntitlementQuantityRatio) {
-        this.prerequisiteToEntitlementQuantityRatio = prerequisiteToEntitlementQuantityRatio;
-    }
-
     @JsonAttribute(name = "allocation_limit")
     public Integer getAllocationLimit() {
         return allocationLimit;
     }
 
-    public void setAllocationLimit(Integer allocationLimit) {
-        this.allocationLimit = allocationLimit;
-    }
-
     @JsonAttribute(name = "updated_at")
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(OffsetDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

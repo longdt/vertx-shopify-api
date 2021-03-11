@@ -1,6 +1,9 @@
 package com.github.longdt.shopify.model;
 
+import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -8,6 +11,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Data
+@Accessors(chain = true)
+@CompiledJson
 public class DiscountApplication {
     private PriceRule.AllocationMethod allocationMethod;
     private String code;

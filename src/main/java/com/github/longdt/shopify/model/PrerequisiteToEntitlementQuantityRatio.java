@@ -2,7 +2,11 @@ package com.github.longdt.shopify.model;
 
 import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
+@Data
+@Accessors(chain = true)
 @CompiledJson
 public class PrerequisiteToEntitlementQuantityRatio {
     private Integer prerequisiteQuantity;
@@ -13,16 +17,8 @@ public class PrerequisiteToEntitlementQuantityRatio {
         return prerequisiteQuantity;
     }
 
-    public void setPrerequisiteQuantity(Integer prerequisiteQuantity) {
-        this.prerequisiteQuantity = prerequisiteQuantity;
-    }
-
     @JsonAttribute(name = "entitled_quantity")
     public Integer getEntitledQuantity() {
         return entitledQuantity;
-    }
-
-    public void setEntitledQuantity(Integer entitledQuantity) {
-        this.entitledQuantity = entitledQuantity;
     }
 }

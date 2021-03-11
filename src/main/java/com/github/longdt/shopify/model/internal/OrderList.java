@@ -2,18 +2,15 @@ package com.github.longdt.shopify.model.internal;
 
 import com.dslplatform.json.CompiledJson;
 import com.github.longdt.shopify.model.Order;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
 import java.util.List;
 
+@Value
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 @CompiledJson
 public class OrderList {
-    private List<Order> orders;
-
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
+    List<Order> orders;
 }

@@ -3,12 +3,16 @@ package com.github.longdt.shopify.model;
 import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
 import com.dslplatform.json.JsonValue;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.time.OffsetDateTime;
 
 /**
  * Created by thienlong on 27/06/2016.
  */
+@Data
+@Accessors(chain = true)
 @CompiledJson
 public class ScriptTag {
     private OffsetDateTime createdAt;
@@ -50,49 +54,13 @@ public class ScriptTag {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getSrc() {
-        return src;
-    }
-
-    public void setSrc(String src) {
-        this.src = src;
-    }
-
     @JsonAttribute(name = "display_scope")
     public DisplayScope getDisplayScope() {
         return displayScope;
     }
 
-    public void setDisplayScope(DisplayScope displayScope) {
-        this.displayScope = displayScope;
-    }
-
     @JsonAttribute(name = "updated_at")
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(OffsetDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

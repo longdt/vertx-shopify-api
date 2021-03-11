@@ -2,7 +2,11 @@ package com.github.longdt.shopify.model;
 
 import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
+@Data
+@Accessors(chain = true)
 @CompiledJson
 public class OAuthToken {
     private String accessToken;
@@ -16,25 +20,9 @@ public class OAuthToken {
         return accessToken;
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
     @JsonAttribute(name = "expires_in")
     public long getExpiresIn() {
         return expiresIn;
-    }
-
-    public void setExpiresIn(long expiresIn) {
-        this.expiresIn = expiresIn;
     }
 
     @JsonAttribute(name = "associated_user_scope")
@@ -42,16 +30,8 @@ public class OAuthToken {
         return associatedUserScope;
     }
 
-    public void setAssociatedUserScope(String associatedUserScope) {
-        this.associatedUserScope = associatedUserScope;
-    }
-
     @JsonAttribute(name = "associated_user")
     public User getAssociatedUser() {
         return associatedUser;
-    }
-
-    public void setAssociatedUser(User associatedUser) {
-        this.associatedUser = associatedUser;
     }
 }

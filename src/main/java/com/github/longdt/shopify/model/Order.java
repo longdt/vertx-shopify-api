@@ -3,6 +3,8 @@ package com.github.longdt.shopify.model;
 import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
 import com.dslplatform.json.JsonValue;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -12,6 +14,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Data
+@Accessors(chain = true)
 @CompiledJson
 public class Order {
     private Long appId;
@@ -35,17 +39,9 @@ public class Order {
         return appId;
     }
 
-    public void setAppId(Long appId) {
-        this.appId = appId;
-    }
-
     @JsonAttribute(name = "billing_address")
     public BillingAddress getBillingAddress() {
         return billingAddress;
-    }
-
-    public void setBillingAddress(BillingAddress billingAddress) {
-        this.billingAddress = billingAddress;
     }
 
     @JsonAttribute(name = "browser_ip")
@@ -53,17 +49,9 @@ public class Order {
         return browserIp;
     }
 
-    public void setBrowserIp(String browserIp) {
-        this.browserIp = browserIp;
-    }
-
     @JsonAttribute(name = "buyer_accepts_marketing")
     public Boolean getBuyerAcceptsMarketing() {
         return buyerAcceptsMarketing;
-    }
-
-    public void setBuyerAcceptsMarketing(Boolean buyerAcceptsMarketing) {
-        this.buyerAcceptsMarketing = buyerAcceptsMarketing;
     }
 
     @JsonAttribute(name = "cancel_reason")
@@ -71,17 +59,9 @@ public class Order {
         return cancelReason;
     }
 
-    public void setCancelReason(CancelReason cancelReason) {
-        this.cancelReason = cancelReason;
-    }
-
     @JsonAttribute(name = "cancelled_at")
     public OffsetDateTime getCancelledAt() {
         return cancelledAt;
-    }
-
-    public void setCancelledAt(OffsetDateTime cancelledAt) {
-        this.cancelledAt = cancelledAt;
     }
 
     @JsonAttribute(name = "cart_token")
@@ -89,17 +69,9 @@ public class Order {
         return cartToken;
     }
 
-    public void setCartToken(String cartToken) {
-        this.cartToken = cartToken;
-    }
-
     @JsonAttribute(name = "client_details")
     public ClientDetails getClientDetails() {
         return clientDetails;
-    }
-
-    public void setClientDetails(ClientDetails clientDetails) {
-        this.clientDetails = clientDetails;
     }
 
     @JsonAttribute(name = "closed_at")
@@ -107,25 +79,9 @@ public class Order {
         return closedAt;
     }
 
-    public void setClosedAt(OffsetDateTime closedAt) {
-        this.closedAt = closedAt;
-    }
-
     @JsonAttribute(name = "created_at")
     public OffsetDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
     }
 
     @JsonAttribute(name = "customer_locale")
@@ -133,23 +89,11 @@ public class Order {
         return customerLocale;
     }
 
-    public void setCustomerLocale(String customerLocale) {
-        this.customerLocale = customerLocale;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public enum CancelReason {
         customer("customer"), fraud("fraud"), inventory("inventory"), declined("declined"), other("other");
 
-        private String value;
-        private static Map<String, CancelReason> values =
+        private final String value;
+        private static final Map<String, CancelReason> values =
                 Arrays.stream(values()).collect(Collectors.toMap(CancelReason::getValue, Function.identity()));
 
         CancelReason(String value) {
@@ -166,8 +110,12 @@ public class Order {
         }
     }
 
+    @Data
+    @Accessors(chain = true)
+    @CompiledJson
     public static class DiscountCode {
         private String code;
         private BigDecimal amount;
+        private String type;
     }
 }

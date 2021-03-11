@@ -3,14 +3,14 @@ package com.github.longdt.shopify.model.internal;
 import com.dslplatform.json.CompiledJson;
 import com.dslplatform.json.JsonAttribute;
 import com.github.longdt.shopify.model.DiscountCode;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
+@Value
 @CompiledJson
 public class DiscountCodeWrapper {
-    private DiscountCode discountCode;
-
-    public DiscountCodeWrapper(DiscountCode discountCode) {
-        this.discountCode = discountCode;
-    }
+    DiscountCode discountCode;
 
     @JsonAttribute(name = "discount_code")
     public DiscountCode getDiscountCode() {
