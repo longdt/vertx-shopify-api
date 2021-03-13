@@ -23,7 +23,7 @@ public interface Session {
     }
 
     /**
-     * get list PriceRule by a given query (query can nullable).<br/>
+     * get list PriceRule by a given query (query can nullable).<br>
      * supported filter:
      * <ul>
      *     <li>limit</li>
@@ -40,8 +40,8 @@ public interface Session {
      *     <li>times_used</li>
      * </ul>
      *
-     * @param query
-     * @return
+     * @param query filter
+     * @return future of list PriceRule
      */
     Future<List<PriceRule>> findPriceRules(JsonObject query);
 
@@ -88,7 +88,7 @@ public interface Session {
     }
 
     /**
-     * get list webhook by a given query (query can nullable).<br/>
+     * get list webhook by a given query (query can nullable).<br>
      * supported filter:
      * <ul>
      *     <li>address</li>
@@ -103,8 +103,8 @@ public interface Session {
      *     <li>updated_at_max</li>
      * </ul>
      *
-     * @param query
-     * @return
+     * @param query filter
+     * @return future of list Webhook
      */
     Future<List<Webhook>> findWebhooks(JsonObject query);
 
@@ -135,7 +135,7 @@ public interface Session {
     }
 
     /**
-     * get list webhook by a given query (query can nullable).<br/>
+     * get list webhook by a given query (query can nullable).<br>
      * supported filter:
      * <ul>
      *     <li>limit</li>
@@ -149,8 +149,8 @@ public interface Session {
      *     <li>fields</li>
      * </ul>
      *
-     * @param query
-     * @return
+     * @param query filter
+     * @return future of list ScriptTag
      */
     Future<List<ScriptTag>> findScriptTags(JsonObject query);
 
@@ -229,7 +229,7 @@ public interface Session {
     }
 
     /**
-     * get list webhook by a given query (query can nullable).<br/>
+     * get list webhook by a given query (query can nullable).<br>
      * supported filter:
      * <ul>
      *     <li>ids: Retrieve certain orders, specified by a comma-separated list of order IDs.</li>
@@ -255,8 +255,8 @@ public interface Session {
      *     <li>fields</li>
      * </ul>
      *
-     * @param query
-     * @return
+     * @param query filter
+     * @return future of list Order
      */
     Future<List<Order>> findOrders(JsonObject query);
 
@@ -289,8 +289,8 @@ public interface Session {
     /**
      * Deletes an order. Orders that interact with an online gateway can't be deleted.
      *
-     * @param orderId
-     * @return
+     * @param orderId order id
+     * @return future
      */
     Future<Void> deleteOrder(Long orderId);
     /* End Order Api*/

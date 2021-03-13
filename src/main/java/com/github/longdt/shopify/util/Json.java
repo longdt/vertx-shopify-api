@@ -3,7 +3,6 @@ package com.github.longdt.shopify.util;
 import com.dslplatform.json.DslJson;
 import com.dslplatform.json.JsonReader;
 import com.dslplatform.json.JsonWriter;
-import com.dslplatform.json.runtime.Settings;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
@@ -25,7 +24,7 @@ import java.util.Map;
 
 public class Json {
     private static final DslJson<Object> dslJson =
-            new DslJson<>(Settings.withRuntime().allowArrayFormat(true).includeServiceLoader());
+            new DslJson<>(new DslJson.Settings<>().allowArrayFormat(true).includeServiceLoader());
 
     private static final FastThreadLocal<JsonReader<Object>> localJsonReader = new FastThreadLocal<>() {
         @Override
@@ -114,9 +113,9 @@ public class Json {
     /**
      * Decode a given JSON buffer to a POJO of the given class type.
      *
-     * @param buf   the JSON buffer.
+     * @param buf  the JSON buffer.
      * @param type the class to map to.
-     * @param <T>   the generic type.
+     * @param <T>  the generic type.
      * @return an instance of T
      * @throws DecodeException when there is a parsing or invalid mapping.
      */
@@ -132,9 +131,9 @@ public class Json {
     /**
      * Decode a given JSON buffer to a POJO of the given class type.
      *
-     * @param buf   the JSON buffer.
+     * @param buf       the JSON buffer.
      * @param converter the class to map to.
-     * @param <T>   the generic type.
+     * @param <T>       the generic type.
      * @return an instance of T
      * @throws DecodeException when there is a parsing or invalid mapping.
      */
@@ -150,9 +149,9 @@ public class Json {
     /**
      * check whether 2 given jsonobject equals non-null key/value
      *
-     * @param a
-     * @param b
-     * @return
+     * @param a JsonObject
+     * @param b JsonObject
+     * @return true if only if a == b or a, b have same non-null key/value
      */
     public static boolean equals(JsonObject a, JsonObject b) {
         if (a == b) {
